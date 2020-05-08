@@ -369,8 +369,8 @@ module Searchkick
               analyzer =
                 if field =~ /\.word_(start|middle|end)\z/
                   "searchkick_word_search"
-                elsif field =~ /.custom_/
-                  field.split('_').last
+                elsif field =~ /.text_middle/
+                  "nori"
                 else
                   "searchkick_autocomplete_search"
                 end
