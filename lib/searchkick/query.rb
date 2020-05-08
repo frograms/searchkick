@@ -564,17 +564,11 @@ module Searchkick
       fields =
         if fields
           fields.map do |value|
-            k, v =
-              if value.is_a?(Hash)
-                f_value = value.to_a.first
-                custom_field_analyzer[field] = value[:analyzer] if value.key?(:analyzer)
-                f_value
-              else 
-                [value, default_match]
-              end
+            k, v = value.is_a?(Hash) ? value.to_a.first : [value, default_match]
             k2, boost = k.to_s.split("^", 2)
             field = "#{k2}.#{v == :word ? 'analyzed' : v}"
             boost_fields[field] = boost.to_f if boost
+            custom_field_analyzer[field] = value[:analyzer] if value.is_a?(Hash) && value.key?(:analyzer)
             field
           end
         elsif all && default_match == :word
