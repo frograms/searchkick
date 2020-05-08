@@ -368,7 +368,7 @@ module Searchkick
             else
               analyzer =
                 if custom_field_analyzer.key?(field)
-                  custom_field_analyzer[:analyzer]
+                  custom_field_analyzer[field]
                 elsif field =~ /\.word_(start|middle|end)\z/
                   "searchkick_word_search"
                 else
