@@ -230,7 +230,7 @@ module Searchkick
     end
 
     def prepare
-      boost_fields, fields = set_fields
+      boost_fields, fields, custom_field_analyzer = set_fields
 
       operator = options[:operator] || "and"
 
@@ -367,10 +367,10 @@ module Searchkick
               exclude_analyzer = "keyword"
             else
               analyzer =
-                if field =~ /\.word_(start|middle|end)\z/
+                if custom_field_analyzer.key?(field)
+                  custom_field_analyzer[:analyzer]
+                elsif field =~ /\.word_(start|middle|end)\z/
                   "searchkick_word_search"
-                elsif field =~ /.text_middle/
-                  "nori"
                 else
                   "searchkick_autocomplete_search"
                 end
@@ -557,13 +557,21 @@ module Searchkick
 
     def set_fields
       boost_fields = {}
+      custom_field_analyzer = {}
       fields = options[:fields] || searchkick_options[:default_fields] || searchkick_options[:searchable]
       all = searchkick_options.key?(:_all) ? searchkick_options[:_all] : false
       default_match = options[:match] || searchkick_options[:match] || :word
       fields =
         if fields
           fields.map do |value|
-            k, v = value.is_a?(Hash) ? value.to_a.first : [value, default_match]
+            k, v =
+              if value.is_a?(Hash)
+                f_value = value.to_a.first
+                custom_field_analyzer[field] = value[:analyzer] if value.key?(:analyzer)
+                f_value
+              else 
+                [value, default_match]
+              end
             k2, boost = k.to_s.split("^", 2)
             field = "#{k2}.#{v == :word ? 'analyzed' : v}"
             boost_fields[field] = boost.to_f if boost
@@ -578,7 +586,7 @@ module Searchkick
         else
           [default_match == :word ? "*.analyzed" : "*.#{default_match}"]
         end
-      [boost_fields, fields]
+      [boost_fields, fields, field_custom_analyzers]
     end
 
     def build_query(query, filters, should, must_not, custom_filters, multiply_filters)
