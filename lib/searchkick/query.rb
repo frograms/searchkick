@@ -364,7 +364,14 @@ module Searchkick
               exclude_field = f
               exclude_analyzer = "keyword"
             else
-              analyzer = field =~ /\.word_(start|middle|end)\z/ ? "searchkick_word_search" : "searchkick_autocomplete_search"
+              analyzer =
+                if field =~ /\.word_(start|middle|end)\z/
+                  "searchkick_word_search"
+                elsif field =~ /.custom_/
+                  field.split('_').last
+                else
+                  "searchkick_autocomplete_search"
+                end
               qs << shared_options.merge(analyzer: analyzer)
               exclude_analyzer = analyzer
             end
