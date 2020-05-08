@@ -580,7 +580,7 @@ module Searchkick
         else
           [default_match == :word ? "*.analyzed" : "*.#{default_match}"]
         end
-      [boost_fields, fields, field_custom_analyzers]
+      [boost_fields, fields, custom_field_analyzer]
     end
 
     def build_query(query, filters, should, must_not, custom_filters, multiply_filters)
